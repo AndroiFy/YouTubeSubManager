@@ -69,12 +69,12 @@ pip install -r requirements.txt
 
 ### Show Help
 ```bash
-python codev4.py
+python yousubv5.py
 ```
 
 ### Basic Command Structure
 ```bash
-python codev4.py --channel <channel_nickname> <command>
+python yousubv5.py --channel <channel_nickname> <command>
 ```
 
 ## 🔧 Commands
@@ -83,7 +83,7 @@ python codev4.py --channel <channel_nickname> <command>
 Generate a detailed CSV file with all subtitle information for batch processing.
 
 ```bash
-python codev4.py --channel main_channel download
+python yousubv5.py --channel main_channel download
 ```
 **Output:** `captions_main_channel.csv`
 
@@ -91,7 +91,7 @@ python codev4.py --channel main_channel download
 Create a human-readable report showing subtitle availability across all videos.
 
 ```bash
-python codev4.py --channel main_channel report
+python yousubv5.py --channel main_channel report
 ```
 **Output:** `report_main_channel.csv`
 
@@ -99,7 +99,7 @@ python codev4.py --channel main_channel report
 Process multiple subtitle operations from a CSV file.
 
 ```bash
-python codev4.py --channel main_channel process --csv-path captions_main_channel.csv
+python yousubv5.py --channel main_channel process --csv-path captions_main_channel.csv
 ```
 
 **CSV Format:**
@@ -118,14 +118,14 @@ python codev4.py --channel main_channel process --csv-path captions_main_channel
 Upload a single subtitle file to a specific video.
 
 ```bash
-python codev4.py --channel main_channel upload --video-id dQw4w9WgXcQ --language en --file-path ./subtitles/video_en.srt
+python yousubv5.py --channel main_channel upload --video-id dQw4w9WgXcQ --language en --file-path ./subtitles/video_en.srt
 ```
 
 ### 🎯 Smart Upload - Automatic Processing
 Upload multiple files by parsing filenames (format: `VIDEOID_LANGUAGE.ext`).
 
 ```bash
-python codev4.py --channel main_channel smart-upload dQw4w9WgXcQ_en.srt dQw4w9WgXcQ_es.srt
+python yousubv5.py --channel main_channel smart-upload dQw4w9WgXcQ_en.srt dQw4w9WgXcQ_es.srt
 ```
 
 **File Naming Convention:**
@@ -178,7 +178,7 @@ python codev4.py --channel main_channel smart-upload dQw4w9WgXcQ_en.srt dQw4w9Wg
 
 ```
 youtube-subtitles-manager/
-├── codev4.py
+├── yousubv5.py
 ├── config.json
 ├── client_secrets.json
 ├── requirements.txt
