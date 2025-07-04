@@ -169,8 +169,8 @@ if __name__ == "__main__":
         print(rf"""
 {T.HEADER}╔════════════════════════════════════════════════════════╗
 ║                                                        ║
-║        Y O U T U B E   S U B T I T L E S                 ║
-║                    M A N A G E R                         ║
+║        Y O U T U B E   S U B T I T L E S               ║
+║                    M A N A G E R                       ║
 ║                                                        ║
 ╚════════════════════════════════════════════════════════╝
 """)
@@ -178,22 +178,21 @@ if __name__ == "__main__":
         print(f" It is configured to use the channels defined in '{T.OK}{CONFIG_FILE}'.")
         print("\n--- Available Commands ---\n")
         print(f"{E.DOWNLOAD} download:  (For Processing) Creates a 'long' format CSV file with all subtitle data.")
-        print("   Usage:     python codev2.py --channel <nickname> download\n")
+        print("   Usage:     python codev4.py --channel <nickname> download\n")
         print(f"{E.REPORT} report:    (For Viewing) Creates a 'wide', human-readable CSV with one row per video.")
-        print("   Usage:     python codev2.py --channel <nickname> report\n")
+        print("   Usage:     python codev4.py --channel <nickname> report\n")
         print(f"{E.PROCESS} process:   Batch processes the 'long' CSV file created by the 'download' command.")
-        print("   Usage:     python codev2.py --channel <nickname> process --csv-path <path_to_long_csv>\n")
+        print("   Usage:     python codev4.py --channel <nickname> process --csv-path <path_to_long_csv>\n")
         print(f"{E.ROCKET} upload:    Uploads a single subtitle file to a video.")
-        print("   Usage:     python codev2.py --channel <nickname> upload --video-id ID --language en --file-path file.srt\n")
+        print("   Usage:     python codev4.py --channel <nickname> upload --video-id ID --language en --file-path file.srt\n")
         print(f"{E.ROCKET} smart-upload: Uploads one or more files by parsing their names.")
-        print("   Usage:     python codev2.py --channel <nickname> smart-upload FILE1_lang.srt ...\n")
+        print("   Usage:     python codev4.py --channel <nickname> smart-upload FILE1_lang.srt ...\n")
 
-        # === NEW: Custom Credit Information ===
-        # Replace the placeholder text below with your actual information.
+
         print(f"{T.HEADER}----------------------------------------------------------")
-        print(f"{T.INFO}   Script created and updated by: [Your Name/Alias]")
-        print(f"{T.INFO}   YouTube: [Your YouTube Channel URL]")
-        print(f"{T.INFO}   GitHub:  [Your GitHub Repository URL]")
+        print(f"{T.INFO}   Script created and updated by: AndroiFy - Alessandro Battistini")
+        print(f"{T.INFO}   YouTube: https://www.youtube.com/@Ale_Battistini")
+        print(f"{T.INFO}   GitHub:  https://github.com/AndroiFy/YouTubeSubManager")
         print(f"{T.HEADER}----------------------------------------------------------")
         
         sys.exit(0)
