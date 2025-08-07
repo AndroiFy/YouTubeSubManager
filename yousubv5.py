@@ -27,6 +27,20 @@ SCOPES = ["https://www.googleapis.com/auth/youtube.force-ssl"]
 API_SERVICE_NAME, API_VERSION, CLIENT_SECRETS_FILE, CONFIG_FILE = "youtube", "v3", "client_secrets.json", "config.json"
 
 # --- Core Functions ---
+def validate_config(config):
+    """Validates the structure of the configuration dictionary."""
+    if not isinstance(config, dict):
+        raise ValueError("Configuration must be a dictionary.")
+    if "channels" not in config:
+        raise ValueError("Configuration file must have a 'channels' key.")
+    if not isinstance(config["channels"], dict):
+        raise ValueError("'channels' must be a dictionary.")
+    if not config["channels"]:
+        raise ValueError("'channels' dictionary cannot be empty.")
+    for nickname, channel_id in config["channels"].items():
+        if not isinstance(channel_id, str) or not channel_id.startswith("UC"):
+            raise ValueError(f"Invalid channel ID for nickname '{nickname}'. It must be a string starting with 'UC'.")
+
 def load_config():
     if not os.path.exists(CONFIG_FILE):
         print(f"{T.FAIL}{E.FAIL} Configuration file '{CONFIG_FILE}' not found. Please create it.")
@@ -176,7 +190,7 @@ def process_csv_batch(youtube, csv_path):
             if action == 'UPLOAD': 
                 upload_caption(youtube, video_id, str(lang), str(file_path))
             elif action == 'UPDATE': 
-                update_caption(youtube, video_id, str(lang), str(file_path))
+                update_caption(youtube, video_id, str(lang), str(file_path), caption_id=caption_id)
             elif action == 'DELETE': 
                 delete_caption(youtube, str(caption_id))
             else: 
@@ -199,18 +213,66 @@ def upload_caption(youtube, video_id, language, file_path):
     response = youtube.captions().insert(part="snippet", body=body, media_body=media_body).execute()
     print(f"{T.OK}    {E.SUCCESS} Upload successful! Caption ID: {response['id']}.")
 
-def update_caption(youtube, video_id, language, file_path):
+def update_caption(youtube, video_id, language, file_path, caption_id=None):
+    """
+    Updates a caption track.
+
+    If a valid caption_id is provided, it attempts a direct, efficient update.
+    If the update fails with a 404 error (not found), or if no caption_id is given,
+    it falls back to searching for the caption by its language.
+    If an existing caption is found via search, it is updated.
+    If no caption can be found to update, a new one is uploaded.
+    """
     print(f"{T.INFO}  {E.PROCESS} Updating '{language}' caption for video {video_id}...")
+
+    # Check if caption_id is a valid, non-empty string-like value from the CSV
+    is_valid_caption_id = pd.notna(caption_id) and str(caption_id).strip()
+
+    if is_valid_caption_id:
+        str_caption_id = str(caption_id).strip()
+        print(f"{T.INFO}    {E.INFO} Attempting direct update with provided caption ID '{str_caption_id}'.")
+        try:
+            media_body = MediaFileUpload(file_path, chunksize=-1, resumable=True)
+            youtube.captions().update(part="snippet", body={'id': str_caption_id}, media_body=media_body).execute()
+            print(f"{T.OK}    {E.SUCCESS} Update successful!")
+            return  # Operation complete
+        except HttpError as e:
+            if e.resp.status == 404:
+                print(f"{T.WARN}    {E.WARN} Provided caption ID '{str_caption_id}' not found. Will fall back to searching by language.")
+                # Fall through to the find-by-language logic
+            else:
+                # For other API errors (e.g., permission denied), let the calling function handle it
+                raise e
+
+    # --- Fallback Logic: Find by language ---
+    # This block runs if no caption_id was provided, or if the direct update failed with a 404.
+    print(f"{T.INFO}    {E.INFO} Searching for existing caption in '{language}'...")
+
+    caption_to_update = None
     try:
-        response = youtube.captions().list(part="snippet", videoId=video_id).execute()
-        caption_id_to_delete = next((item['id'] for item in response.get('items', []) if item['snippet']['language'].lower() == language.lower()), None)
-        if caption_id_to_delete:
-            delete_caption(youtube, caption_id_to_delete, is_update=True)
-        else:
-            print(f"{T.INFO}    {E.INFO} No existing '{language}' caption found. Proceeding with a new upload.")
+        list_response = youtube.captions().list(part="id,snippet", videoId=video_id).execute()
+        caption_to_update = next((item for item in list_response.get('items', []) if item['snippet']['language'].lower() == language.lower()), None)
     except HttpError as e:
-        print(f"{T.WARN}    {E.WARN} Could not check for existing captions: {e.reason}. Attempting to upload anyway.")
-    upload_caption(youtube, video_id, language, file_path)
+        print(f"{T.WARN}    {E.WARN} Could not check for existing captions: {e.reason}. Will try to upload as a new caption.")
+        upload_caption(youtube, video_id, language, file_path)
+        return
+
+    if caption_to_update:
+        # If caption exists, update it
+        found_caption_id = caption_to_update['id']
+        print(f"{T.INFO}    {E.INFO} Found existing caption with ID '{found_caption_id}'. Updating it.")
+        try:
+            media_body = MediaFileUpload(file_path, chunksize=-1, resumable=True)
+            youtube.captions().update(part="snippet", body={'id': found_caption_id}, media_body=media_body).execute()
+            print(f"{T.OK}    {E.SUCCESS} Update successful!")
+        except HttpError as e:
+            print(f"{T.FAIL}{E.FAIL}  -> YouTube API error during update for caption ID {found_caption_id}: {e.reason}")
+            print(f"{T.INFO}           Trying to upload as new caption instead.")
+            upload_caption(youtube, video_id, language, file_path)
+    else:
+        # If caption doesn't exist, upload a new one
+        print(f"{T.INFO}    {E.INFO} No existing '{language}' caption found. Proceeding with a new upload.")
+        upload_caption(youtube, video_id, language, file_path)
 
 def delete_caption(youtube, caption_id, is_update=False):
     message_prefix = "  " if is_update else ""
@@ -219,7 +281,8 @@ def delete_caption(youtube, caption_id, is_update=False):
     print(f"{T.OK}{message_prefix}    {E.SUCCESS} Deleted caption.")
 
 # --- Main Execution Block ---
-if __name__ == "__main__":
+def main():
+    """Main function to run the script."""
     if len(sys.argv) == 1:
         print(rf"""
 {T.HEADER}╔════════════════════════════════════════════════════════╗
@@ -312,3 +375,6 @@ if __name__ == "__main__":
     except Exception as e:
         print(f"\n{T.FAIL}{E.FAIL} FATAL ERROR: An operation failed. Reason: {e}")
         sys.exit(1)
+
+if __name__ == "__main__":
+    main()
