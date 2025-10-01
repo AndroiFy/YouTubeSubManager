@@ -20,11 +20,64 @@ class T:
 
 # CORRECTED E CLASS
 class E:
-    SUCCESS, INFO, WARN, FAIL, KEY, ROCKET, CHANNEL, FILE, DOWNLOAD, PROCESS, VIDEO, TRASH, REPORT = "✅", "ℹ️", "⚠️", "❌", "🔑", "🚀", "📺", "📁", "📥", "⚙️", "🎞️", "🗑️", "📊"
+    SUCCESS, INFO, WARN, FAIL, KEY, ROCKET, CHANNEL, FILE, DOWNLOAD, PROCESS, VIDEO, TRASH, REPORT = "✅", "ℹ️", "⚠️", "❌", "🔑", "🚀", "📺", "📄", "📥", "⚙️", "🎞️", "🗑️", "📊"
 
 # --- Configuration ---
 SCOPES = ["https://www.googleapis.com/auth/youtube.force-ssl"]
 API_SERVICE_NAME, API_VERSION, CLIENT_SECRETS_FILE, CONFIG_FILE = "youtube", "v3", "client_secrets.json", "config.json"
+
+# --- Regional Language Mapping ---
+# Maps standard language codes to YouTube's regional variants for autodubbing compatibility
+REGIONAL_LANGUAGE_MAP = {
+    # YouTube autodubbing languages with specific regions
+    'ar': 'ar',           # Arabic (experimental)
+    'bn': 'bn',           # Bangla (experimental)
+    'nl': 'nl-NL',        # Dutch (Netherlands) (experimental)
+    'fr': 'fr-FR',        # French (France)
+    'de': 'de-DE',        # German (Germany)
+    'hi': 'hi',           # Hindi
+    'id': 'id',           # Indonesian
+    'it': 'it',           # Italian
+    'ja': 'ja',           # Japanese
+    'ko': 'ko',           # Korean (experimental)
+    'ml': 'ml',           # Malayalam
+    'pl': 'pl',           # Polish
+    'pt': 'pt-BR',        # Portuguese (Brazil)
+    'pt-br': 'pt-BR',     # Alternative notation
+    'pa': 'pa',           # Punjabi (experimental)
+    'ru': 'ru',           # Russian (experimental)
+    'es': 'es-US',        # Spanish (United States)
+    'es-us': 'es-US',     # Alternative notation
+    'ta': 'ta',           # Tamil (experimental)
+    'te': 'te',           # Telugu (experimental)
+    'uk': 'uk',           # Ukrainian
+    
+    # Common variations that should be normalized
+    'en': 'en',           # English (standard)
+    'en-us': 'en-US',     # English (United States)
+    'en-gb': 'en-GB',     # English (United Kingdom)
+    'zh': 'zh',           # Chinese (Simplified)
+    'zh-cn': 'zh-CN',     # Chinese (China)
+    'zh-tw': 'zh-TW',     # Chinese (Taiwan)
+    'zh-hk': 'zh-HK',     # Chinese (Hong Kong)
+}
+
+def normalize_language_code(lang):
+    """
+    Normalizes language codes to match YouTube's regional requirements.
+    Returns the appropriate regional variant if available.
+    """
+    lang_lower = lang.lower().strip()
+    
+    # Check if it's already in our map
+    if lang_lower in REGIONAL_LANGUAGE_MAP:
+        normalized = REGIONAL_LANGUAGE_MAP[lang_lower]
+        if normalized != lang:
+            print(f"{T.INFO}    {E.INFO} Language code '{lang}' normalized to '{normalized}' for YouTube compatibility.")
+        return normalized
+    
+    # If not in map, return original (might be a valid code we haven't mapped)
+    return lang
 
 # --- Core Functions ---
 def validate_config(config):
@@ -86,9 +139,9 @@ def validate_language_code(lang):
         'aa', 'ab', 'af', 'ak', 'am', 'an', 'ar', 'as', 'av', 'ay', 'az',
         'ba', 'be', 'bg', 'bh', 'bi', 'bm', 'bn', 'bo', 'br', 'bs',
         'ca', 'ce', 'ch', 'co', 'cr', 'cs', 'cu', 'cv', 'cy',
-        'da', 'de', 'dv', 'dz',
-        'ee', 'el', 'en', 'eo', 'es', 'et', 'eu',
-        'fa', 'ff', 'fi', 'fj', 'fo', 'fr', 'fy',
+        'da', 'de', 'de-de', 'dv', 'dz',
+        'ee', 'el', 'en', 'en-us', 'en-gb', 'eo', 'es', 'es-us', 'et', 'eu',
+        'fa', 'ff', 'fi', 'fj', 'fo', 'fr', 'fr-fr', 'fy',
         'ga', 'gd', 'gl', 'gn', 'gu', 'gv',
         'ha', 'he', 'hi', 'ho', 'hr', 'ht', 'hu', 'hy', 'hz',
         'ia', 'id', 'ie', 'ig', 'ii', 'ik', 'io', 'is', 'it', 'iu',
@@ -96,9 +149,9 @@ def validate_language_code(lang):
         'ka', 'kg', 'ki', 'kj', 'kk', 'kl', 'km', 'kn', 'ko', 'kr', 'ks', 'ku', 'kv', 'kw', 'ky',
         'la', 'lb', 'lg', 'li', 'ln', 'lo', 'lt', 'lu', 'lv',
         'mg', 'mh', 'mi', 'mk', 'ml', 'mn', 'mo', 'mr', 'ms', 'mt', 'my',
-        'na', 'nb', 'nd', 'ne', 'ng', 'nl', 'nn', 'no', 'nr', 'nv', 'ny',
+        'na', 'nb', 'nd', 'ne', 'ng', 'nl', 'nl-nl', 'nn', 'no', 'nr', 'nv', 'ny',
         'oc', 'oj', 'om', 'or', 'os',
-        'pa', 'pi', 'pl', 'ps', 'pt',
+        'pa', 'pi', 'pl', 'ps', 'pt', 'pt-br',
         'qu',
         'rm', 'rn', 'ro', 'ru', 'rw',
         'sa', 'sc', 'sd', 'se', 'sg', 'sh', 'si', 'sk', 'sl', 'sm', 'sn', 'so', 'sq', 'sr', 'ss', 'st', 'su', 'sv', 'sw',
@@ -108,7 +161,7 @@ def validate_language_code(lang):
         'wa', 'wo',
         'xh',
         'yi', 'yo',
-        'za', 'zh', 'zu'
+        'za', 'zh', 'zh-cn', 'zh-tw', 'zh-hk', 'zu'
     ]
     return lang.lower() in valid_codes
 
@@ -205,17 +258,21 @@ def process_csv_batch(youtube, csv_path):
             print(f"{T.FAIL}{E.FAIL}  -> Unexpected error: {e}")
 
 def upload_caption(youtube, video_id, language, file_path):
-    if not validate_language_code(language):
-        print(f"{T.WARN}{E.WARN} Warning: '{language}' may not be a valid YouTube language code.")
-    print(f"{T.INFO}  {E.ROCKET} Uploading '{language}' caption from '{file_path}'...")
-    body = {'snippet': {'videoId': video_id, 'language': language, 'isDraft': False}}
+    # Normalize language code to match YouTube's regional requirements
+    normalized_lang = normalize_language_code(language)
+    
+    if not validate_language_code(normalized_lang):
+        print(f"{T.WARN}{E.WARN} Warning: '{normalized_lang}' may not be a valid YouTube language code.")
+    
+    print(f"{T.INFO}  {E.ROCKET} Uploading '{normalized_lang}' caption from '{file_path}'...")
+    body = {'snippet': {'videoId': video_id, 'language': normalized_lang, 'isDraft': False}}
     media_body = MediaFileUpload(file_path, chunksize=-1, resumable=True)
     response = youtube.captions().insert(part="snippet", body=body, media_body=media_body).execute()
     print(f"{T.OK}    {E.SUCCESS} Upload successful! Caption ID: {response['id']}.")
 
 def update_caption(youtube, video_id, language, file_path, caption_id=None):
     """
-    Updates a caption track.
+    Updates a caption track with regional language support.
 
     If a valid caption_id is provided, it attempts a direct, efficient update.
     If the update fails with a 404 error (not found), or if no caption_id is given,
@@ -223,7 +280,10 @@ def update_caption(youtube, video_id, language, file_path, caption_id=None):
     If an existing caption is found via search, it is updated.
     If no caption can be found to update, a new one is uploaded.
     """
-    print(f"{T.INFO}  {E.PROCESS} Updating '{language}' caption for video {video_id}...")
+    # Normalize language code to match YouTube's regional requirements
+    normalized_lang = normalize_language_code(language)
+    
+    print(f"{T.INFO}  {E.PROCESS} Updating '{normalized_lang}' caption for video {video_id}...")
 
     # Check if caption_id is a valid, non-empty string-like value from the CSV
     is_valid_caption_id = pd.notna(caption_id) and str(caption_id).strip()
@@ -246,15 +306,15 @@ def update_caption(youtube, video_id, language, file_path, caption_id=None):
 
     # --- Fallback Logic: Find by language ---
     # This block runs if no caption_id was provided, or if the direct update failed with a 404.
-    print(f"{T.INFO}    {E.INFO} Searching for existing caption in '{language}'...")
+    print(f"{T.INFO}    {E.INFO} Searching for existing caption in '{normalized_lang}'...")
 
     caption_to_update = None
     try:
         list_response = youtube.captions().list(part="id,snippet", videoId=video_id).execute()
-        caption_to_update = next((item for item in list_response.get('items', []) if item['snippet']['language'].lower() == language.lower()), None)
+        caption_to_update = next((item for item in list_response.get('items', []) if item['snippet']['language'].lower() == normalized_lang.lower()), None)
     except HttpError as e:
         print(f"{T.WARN}    {E.WARN} Could not check for existing captions: {e.reason}. Will try to upload as a new caption.")
-        upload_caption(youtube, video_id, language, file_path)
+        upload_caption(youtube, video_id, normalized_lang, file_path)
         return
 
     if caption_to_update:
@@ -268,11 +328,11 @@ def update_caption(youtube, video_id, language, file_path, caption_id=None):
         except HttpError as e:
             print(f"{T.FAIL}{E.FAIL}  -> YouTube API error during update for caption ID {found_caption_id}: {e.reason}")
             print(f"{T.INFO}           Trying to upload as new caption instead.")
-            upload_caption(youtube, video_id, language, file_path)
+            upload_caption(youtube, video_id, normalized_lang, file_path)
     else:
         # If caption doesn't exist, upload a new one
-        print(f"{T.INFO}    {E.INFO} No existing '{language}' caption found. Proceeding with a new upload.")
-        upload_caption(youtube, video_id, language, file_path)
+        print(f"{T.INFO}    {E.INFO} No existing '{normalized_lang}' caption found. Proceeding with a new upload.")
+        upload_caption(youtube, video_id, normalized_lang, file_path)
 
 def delete_caption(youtube, caption_id, is_update=False):
     message_prefix = "  " if is_update else ""
@@ -285,29 +345,37 @@ def main():
     """Main function to run the script."""
     if len(sys.argv) == 1:
         print(rf"""
-{T.HEADER}╔════════════════════════════════════════════════════════╗
+{T.HEADER}╔══════════════════════════════════════════════════╗
 ║                                                        ║
 ║        Y O U T U B E   S U B T I T L E S               ║
 ║                    M A N A G E R                       ║
+║                      v6.0                              ║
 ║                                                        ║
-╚════════════════════════════════════════════════════════╝
+╚══════════════════════════════════════════════════════╝
 """)
         print(" Welcome! This tool helps manage subtitles for multiple YouTube channels.")
         print(f" It is configured to use the channels defined in '{T.OK}{CONFIG_FILE}'.")
         print("\n--- Available Commands ---\n")
         print(f"{E.DOWNLOAD} download:  (For Processing) Creates a 'long' format CSV file with all subtitle data.")
-        print("   Usage:     python yousubv5.py --channel <nickname> download\n")
+        print("   Usage:     python yousubv6.py --channel <nickname> download\n")
         print(f"{E.REPORT} report:    (For Viewing) Creates a 'wide', human-readable CSV with one row per video.")
-        print("   Usage:     python yousubv5.py --channel <nickname> report\n")
+        print("   Usage:     python yousubv6.py --channel <nickname> report\n")
         print(f"{E.PROCESS} process:   Batch processes the 'long' CSV file created by the 'download' command.")
-        print("   Usage:     python yousubv5.py --channel <nickname> process --csv-path <path_to_long_csv>\n")
+        print("   Usage:     python yousubv6.py --channel <nickname> process --csv-path <path_to_long_csv>\n")
         print(f"{E.ROCKET} upload:    Uploads a single subtitle file to a video.")
-        print("   Usage:     python yousubv5.py --channel <nickname> upload --video-id ID --language en --file-path file.srt\n")
+        print("   Usage:     python yousubv6.py --channel <nickname> upload --video-id ID --language en --file-path file.srt\n")
         print(f"{E.ROCKET} smart-upload: Uploads one or more files by parsing their names.")
-        print("   Usage:     python yousubv5.py --channel <nickname> smart-upload FILE1_lang.srt ...\n")
+        print("   Usage:     python yousubv6.py --channel <nickname> smart-upload FILE1_lang.srt ...\n")
+        
+        print(f"\n{T.INFO}--- Regional Language Support ---")
+        print(f"{T.INFO}The script now automatically normalizes language codes to match YouTube's autodubbing regions:")
+        print(f"{T.INFO}  • pt → pt-BR (Portuguese Brazil)")
+        print(f"{T.INFO}  • es → es-US (Spanish United States)")
+        print(f"{T.INFO}  • fr → fr-FR (French France)")
+        print(f"{T.INFO}  • de → de-DE (German Germany)")
+        print(f"{T.INFO}  • nl → nl-NL (Dutch Netherlands)")
+        print(f"{T.INFO}  • And more... See REGIONAL_LANGUAGE_MAP in the code for full list.\n")
 
-        # === NEW: Custom Credit Information ===
-        # Replace the placeholder text below with your actual information.
         print(f"{T.HEADER}----------------------------------------------------------")
         print(f"{T.INFO}   Script created and updated by: Alessandro Battistini - AndroiFy")
         print(f"{T.INFO}   YouTube: https://www.youtube.com/@Ale_Battistini")
