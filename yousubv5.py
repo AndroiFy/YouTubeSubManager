@@ -292,8 +292,11 @@ def update_caption(youtube, video_id, language, file_path, caption_id=None):
         str_caption_id = str(caption_id).strip()
         print(f"{T.INFO}    {E.INFO} Attempting direct update with provided caption ID '{str_caption_id}'.")
         try:
+            # The body of an update request must be a valid caption resource, including the ID.
+            # We also specify the video ID and draft status in the snippet.
+            body = {'id': str_caption_id, 'snippet': {'videoId': video_id, 'isDraft': False}}
             media_body = MediaFileUpload(file_path, chunksize=-1, resumable=True)
-            youtube.captions().update(part="snippet", body={'id': str_caption_id}, media_body=media_body).execute()
+            youtube.captions().update(part="snippet", body=body, media_body=media_body).execute()
             print(f"{T.OK}    {E.SUCCESS} Update successful!")
             return  # Operation complete
         except HttpError as e:
@@ -322,8 +325,10 @@ def update_caption(youtube, video_id, language, file_path, caption_id=None):
         found_caption_id = caption_to_update['id']
         print(f"{T.INFO}    {E.INFO} Found existing caption with ID '{found_caption_id}'. Updating it.")
         try:
+            # The body of an update request must be a valid caption resource.
+            body = {'id': found_caption_id, 'snippet': {'videoId': video_id, 'isDraft': False}}
             media_body = MediaFileUpload(file_path, chunksize=-1, resumable=True)
-            youtube.captions().update(part="snippet", body={'id': found_caption_id}, media_body=media_body).execute()
+            youtube.captions().update(part="snippet", body=body, media_body=media_body).execute()
             print(f"{T.OK}    {E.SUCCESS} Update successful!")
         except HttpError as e:
             print(f"{T.FAIL}{E.FAIL}  -> YouTube API error during update for caption ID {found_caption_id}: {e.reason}")
@@ -425,9 +430,17 @@ def main():
                 if not os.access(file_path, os.R_OK):raise PermissionError(f"Cannot read file: {file_path}")
                 basename = os.path.basename(file_path)
                 filename_no_ext, _ = os.path.splitext(basename)
-                parts = filename_no_ext.rsplit('_', 1)
-                if len(parts) != 2 or not parts[0] or not parts[1]: raise ValueError(f"Invalid filename format for '{basename}'. Must be 'VIDEOID_LANGUAGE.ext'.")
-                video_id, language = parts
+                # Improved parsing: split by underscore, last part is language, rest is video ID.
+                # This is more robust for video IDs that might contain underscores.
+                components = filename_no_ext.split('_')
+                if len(components) < 2:
+                    raise ValueError(f"Invalid filename format for '{basename}'. Expected 'VIDEOID_LANGUAGE.ext'.")
+
+                language = components[-1]
+                video_id = '_'.join(components[:-1])
+
+                if not video_id or not language:
+                    raise ValueError(f"Invalid filename format for '{basename}'. Video ID or language part is empty.")
                 if target_video_id is None:
                     target_video_id = video_id
                     print(f"{T.INFO}   {E.VIDEO} Target Video ID set to: {target_video_id}")
