@@ -10,6 +10,7 @@ from src.file_handler import (
     generate_wide_report,
     process_csv_batch,
 )
+from src.translations import get_string, load_translations
 
 def show_help():
     """Displays the main help message."""
@@ -22,52 +23,59 @@ def show_help():
 ║                                                        ║
 ╚══════════════════════════════════════════════════════╝
 """)
-    print(" Welcome! This tool helps manage subtitles for multiple YouTube channels.")
+    print(get_string('welcome_message'))
     print("\n--- Available Commands ---\n")
-    print(f"{E.DOWNLOAD} download:  Creates a CSV file with all subtitle data.")
-    print(f"{E.REPORT} report:    Creates a human-readable report of subtitle status.")
-    print(f"{E.PROCESS} process:   Batch processes actions from a CSV file.")
-    print(f"{E.ROCKET} upload:    Uploads a single subtitle file.")
-    print(f"{E.ROCKET} smart-upload: Uploads one or more files by parsing their names.")
+    print(f"{E.DOWNLOAD} download:  {get_string('help_download')}")
+    print(f"{E.REPORT} report:    {get_string('help_report')}")
+    print(f"{E.PROCESS} process:   {get_string('help_process')}")
+    print(f"{E.ROCKET} upload:    {get_string('help_upload')}")
+    print(f"{E.ROCKET} smart-upload: {get_string('help_smart_upload')}")
 
 def main():
     """Main function to run the script."""
+    # Preliminary parse to get the language, so help messages can be translated.
+    lang_parser = argparse.ArgumentParser(add_help=False)
+    lang_parser.add_argument('--lang', default='en', help="Application language (e.g., en, it, fr).")
+    lang_args, _ = lang_parser.parse_known_args()
+    load_translations(lang_args.lang)
+
     if len(sys.argv) == 1:
         show_help()
         sys.exit(0)
 
     config = load_config()
-    parser = argparse.ArgumentParser(description="Manage YouTube video subtitles.")
-    parser.add_argument("-c", "--channel", required=True, choices=config['channels'].keys(), help="Channel nickname from config.json.")
+    parser = argparse.ArgumentParser(description=get_string('app_description'))
+    parser.add_argument("-c", "--channel", required=True, choices=config['channels'].keys(), help=get_string('channel_help'))
+    parser.add_argument('--lang', default='en', help=get_string('lang_help'))
 
     parent_parser = argparse.ArgumentParser(add_help=False)
-    parent_parser.add_argument("--dry-run", action="store_true", help="Simulate actions without making any changes to YouTube.")
+    parent_parser.add_argument("--dry-run", action="store_true", help=get_string('dry_run_help'))
 
-    subparsers = parser.add_subparsers(dest="command", required=True, help="Available commands")
-    subparsers.add_parser("download", help="Download subtitle info to a CSV.")
-    subparsers.add_parser("report", help="Generate a wide CSV report.")
+    subparsers = parser.add_subparsers(dest="command", required=True, help=get_string('commands_help'))
+    subparsers.add_parser("download", help=get_string('download_help'))
+    subparsers.add_parser("report", help=get_string('report_help'))
 
-    process_parser = subparsers.add_parser("process", help="Process a CSV file.", parents=[parent_parser])
-    process_parser.add_argument("--csv-path", required=True, help="Path to the CSV file.")
+    process_parser = subparsers.add_parser("process", help=get_string('process_help'), parents=[parent_parser])
+    process_parser.add_argument("--csv-path", required=True, help=get_string('csv_path_help'))
 
-    upload_parser = subparsers.add_parser("upload", help="Upload a single file.", parents=[parent_parser])
+    upload_parser = subparsers.add_parser("upload", help=get_string('upload_help'), parents=[parent_parser])
     upload_parser.add_argument("--video-id", required=True)
     upload_parser.add_argument("--language", required=True)
     upload_parser.add_argument("--file-path", required=True)
 
-    smart_upload_parser = subparsers.add_parser("smart-upload", help="Upload files based on their names.", parents=[parent_parser])
+    smart_upload_parser = subparsers.add_parser("smart-upload", help=get_string('smart_upload_help'), parents=[parent_parser])
     smart_upload_parser.add_argument("file_paths", nargs='+')
 
     args = parser.parse_args()
 
     is_dry_run = getattr(args, 'dry_run', False)
     if is_dry_run:
-        print(f"{T.WARN}--- DRY RUN mode enabled: No changes will be made ---")
+        print(f"{T.WARN}{get_string('dry_run_enabled')}")
 
     try:
         channel_nickname = args.channel
         channel_id = config['channels'][channel_nickname]
-        print(f"\n{T.HEADER}--- {E.CHANNEL} Working on channel: '{channel_nickname}' ---")
+        print(f"\n{T.HEADER}{get_string('working_on_channel', channel_nickname=channel_nickname)}")
 
         modifying_commands = ["process", "upload", "smart-upload"]
         youtube = None
@@ -83,8 +91,8 @@ def main():
         elif args.command == "upload":
             upload_caption(youtube, args.video_id, args.language, args.file_path, dry_run=is_dry_run)
         elif args.command == "smart-upload":
-            print(f"{T.HEADER}--- {E.ROCKET} Starting Smart Upload ---")
-            print(f"{T.INFO}1. Validating all file names...")
+            print(f"{T.HEADER}--- {E.ROCKET} {get_string('smart_upload_start')} ---")
+            print(f"{T.INFO}{get_string('validating_files')}")
             target_video_id, files_to_upload = None, []
             for file_path in args.file_paths:
                 if not os.path.exists(file_path):
@@ -97,30 +105,30 @@ def main():
 
                 components = filename_no_ext.split('_')
                 if len(components) < 2:
-                    raise ValueError(f"Invalid filename format for '{basename}'. Expected 'VIDEOID_LANGUAGE.ext'.")
+                    raise ValueError(get_string('invalid_filename', basename=basename))
 
                 language = components[-1]
                 video_id = '_'.join(components[:-1])
 
                 if not video_id or not language:
-                    raise ValueError(f"Invalid filename format for '{basename}'. Video ID or language part is empty.")
+                    raise ValueError(get_string('empty_filename_parts', basename=basename))
 
                 if target_video_id is None:
                     target_video_id = video_id
-                    print(f"{T.INFO}   {E.VIDEO} Target Video ID set to: {target_video_id}")
+                    print(f"{T.INFO}   {E.VIDEO} {get_string('target_video_id_set', target_video_id=target_video_id)}")
                 elif video_id != target_video_id:
-                    raise ValueError(f"Mismatched Video ID. Expected '{target_video_id}' but file '{basename}' has '{video_id}'.")
+                    raise ValueError(get_string('mismatched_video_id', target_video_id=target_video_id, basename=basename, video_id=video_id))
                 files_to_upload.append({'path': file_path, 'id': video_id, 'lang': language})
 
-            print(f"{T.OK}   {E.SUCCESS} Validation successful.")
-            print(f"\n{T.INFO}2. Starting uploads for {len(files_to_upload)} files...")
+            print(f"{T.OK}   {E.SUCCESS} {get_string('validation_successful')}")
+            print(f"\n{T.INFO}{get_string('starting_uploads', file_count=len(files_to_upload))}")
             for i, file_info in enumerate(files_to_upload):
                 print(f"{T.INFO}   ({i+1}/{len(files_to_upload)}) ", end="")
                 upload_caption(youtube, file_info['id'], file_info['lang'], file_info['path'], dry_run=is_dry_run)
-            print(f"\n{T.OK}--- {E.SUCCESS} Smart Upload Complete ---")
+            print(f"\n{T.OK}--- {E.SUCCESS} {get_string('smart_upload_complete')} ---")
 
     except (ValueError, FileNotFoundError, PermissionError) as e:
-        print(f"\n{T.FAIL}{E.FAIL} Input Error: {e}")
+        print(f"\n{T.FAIL}{E.FAIL} {get_string('input_error', error=e)}")
         sys.exit(1)
     except HttpError as e:
         try:
@@ -129,12 +137,12 @@ def main():
                 error_json = pd.io.json.loads(e.content.decode('utf-8'))
                 error_message = error_json.get("error", {}).get("message", e.reason)
                 error_details = f"{error_message} (Code: {e.resp.status})"
-            print(f"\n{T.FAIL}{E.FAIL} YouTube API Error: {error_details}")
+            print(f"\n{T.FAIL}{E.FAIL} {get_string('api_error_details', details=error_details)}")
         except (ValueError, AttributeError):
-            print(f"\n{T.FAIL}{E.FAIL} YouTube API Error: {e.reason} (Code: {e.resp.status})")
+            print(f"\n{T.FAIL}{E.FAIL} {get_string('api_error_details', details=f'{e.reason} (Code: {e.resp.status})')}")
         sys.exit(1)
     except Exception as e:
-        print(f"\n{T.FAIL}{E.FAIL} An unexpected fatal error occurred: {e}")
+        print(f"\n{T.FAIL}{E.FAIL} {get_string('unexpected_error', error=e)}")
         sys.exit(1)
 
 if __name__ == "__main__":
