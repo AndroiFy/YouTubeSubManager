@@ -3,7 +3,7 @@ import os
 import argparse
 import pandas as pd
 from googleapiclient.errors import HttpError
-from src.config import T, E, load_config
+from src.config import T, E, load_config, QUOTA_COSTS
 from src.youtube_api import get_authenticated_service, upload_caption
 from src.file_handler import (
     download_channel_captions_to_csv,
@@ -31,6 +31,24 @@ def show_help():
     print(f"{E.ROCKET} upload:    {get_string('help_upload')}")
     print(f"{E.ROCKET} smart-upload: {get_string('help_smart_upload')}")
 
+def confirm_quota(uploads=0, updates=0, deletes=0):
+    """Calculates estimated quota cost and asks for user confirmation."""
+    total_cost = (uploads * QUOTA_COSTS.get('UPLOAD', 0) +
+                  updates * QUOTA_COSTS.get('UPDATE', 0) +
+                  deletes * QUOTA_COSTS.get('DELETE', 0))
+
+    if total_cost == 0:
+        return True
+
+    print(f"{T.WARN}⚠️ {get_string('quota_warning', uploads=uploads, updates=updates, deletes=deletes, total_cost=total_cost)}")
+    print(f"{T.INFO}   {get_string('quota_details', percentage=(total_cost / 10000) * 100)}")
+
+    proceed = input(f"{T.INFO}   {get_string('quota_proceed')} ").lower()
+    if proceed not in ['y', 'yes']:
+        print(f"{T.FAIL}{E.FAIL} {get_string('operation_aborted')}")
+        return False
+    return True
+
 def main():
     """Main function to run the script."""
     # Preliminary parse to get the language, so help messages can be translated.
@@ -48,22 +66,28 @@ def main():
     parser.add_argument("-c", "--channel", required=True, choices=config['channels'].keys(), help=get_string('channel_help'))
     parser.add_argument('--lang', default='en', help=get_string('lang_help'))
 
-    parent_parser = argparse.ArgumentParser(add_help=False)
-    parent_parser.add_argument("--dry-run", action="store_true", help=get_string('dry_run_help'))
+    # Parent parsers for flags
+    dry_run_parser = argparse.ArgumentParser(add_help=False)
+    dry_run_parser.add_argument("--dry-run", action="store_true", help=get_string('dry_run_help'))
+
+    cache_parser = argparse.ArgumentParser(add_help=False)
+    cache_parser.add_argument("--no-cache", action="store_true", help=get_string('no_cache_help'))
+
 
     subparsers = parser.add_subparsers(dest="command", required=True, help=get_string('commands_help'))
-    subparsers.add_parser("download", help=get_string('download_help'))
-    subparsers.add_parser("report", help=get_string('report_help'))
 
-    process_parser = subparsers.add_parser("process", help=get_string('process_help'), parents=[parent_parser])
+    download_parser = subparsers.add_parser("download", help=get_string('download_help'), parents=[cache_parser])
+    report_parser = subparsers.add_parser("report", help=get_string('report_help'), parents=[cache_parser])
+
+    process_parser = subparsers.add_parser("process", help=get_string('process_help'), parents=[dry_run_parser])
     process_parser.add_argument("--csv-path", required=True, help=get_string('csv_path_help'))
 
-    upload_parser = subparsers.add_parser("upload", help=get_string('upload_help'), parents=[parent_parser])
+    upload_parser = subparsers.add_parser("upload", help=get_string('upload_help'), parents=[dry_run_parser])
     upload_parser.add_argument("--video-id", required=True)
     upload_parser.add_argument("--language", required=True)
     upload_parser.add_argument("--file-path", required=True)
 
-    smart_upload_parser = subparsers.add_parser("smart-upload", help=get_string('smart_upload_help'), parents=[parent_parser])
+    smart_upload_parser = subparsers.add_parser("smart-upload", help=get_string('smart_upload_help'), parents=[dry_run_parser])
     smart_upload_parser.add_argument("file_paths", nargs='+')
 
     args = parser.parse_args()
@@ -71,6 +95,8 @@ def main():
     is_dry_run = getattr(args, 'dry_run', False)
     if is_dry_run:
         print(f"{T.WARN}{get_string('dry_run_enabled')}")
+
+    is_no_cache = getattr(args, 'no_cache', False)
 
     try:
         channel_nickname = args.channel
@@ -83,14 +109,19 @@ def main():
             youtube = get_authenticated_service(channel_nickname)
 
         if args.command == "download":
-            download_channel_captions_to_csv(youtube, channel_id, channel_nickname)
+            download_channel_captions_to_csv(youtube, channel_id, channel_nickname, no_cache=is_no_cache)
         elif args.command == "report":
-            generate_wide_report(youtube, channel_id, channel_nickname)
+            generate_wide_report(youtube, channel_id, channel_nickname, no_cache=is_no_cache)
         elif args.command == "process":
             process_csv_batch(youtube, args.csv_path, dry_run=is_dry_run)
         elif args.command == "upload":
+            if not is_dry_run and not confirm_quota(uploads=1):
+                sys.exit(0)
             upload_caption(youtube, args.video_id, args.language, args.file_path, dry_run=is_dry_run)
         elif args.command == "smart-upload":
+            if not is_dry_run and not confirm_quota(uploads=len(args.file_paths)):
+                sys.exit(0)
+
             print(f"{T.HEADER}--- {E.ROCKET} {get_string('smart_upload_start')} ---")
             print(f"{T.INFO}{get_string('validating_files')}")
             target_video_id, files_to_upload = None, []

@@ -2,6 +2,7 @@
     "app_description": "Gestiona los subtítulos de los vídeos de YouTube.",
     "channel_help": "Apodo del canal de config.json.",
     "dry_run_help": "Simula las acciones sin realizar ningún cambio en YouTube.",
+    "no_cache_help": "Forzar una nueva obtención de datos de YouTube, ignorando la caché local.",
     "commands_help": "Comandos disponibles",
     "download_help": "Descarga la información de los subtítulos a un archivo CSV.",
     "report_help": "Genera un informe CSV en formato ancho.",
@@ -76,5 +77,9 @@
     "permission_error": "-> Permiso denegado: {error}",
     "youtube_api_error": "-> Error de la API de YouTube: {error}",
     "unexpected_row_error": "-> Ocurrió un error inesperado: {error}",
-    "lang_help": "Idioma de la aplicación (p. ej., en, it, fr)."
+    "lang_help": "Idioma de la aplicación (p. ej., en, it, fr).",
+    "quota_warning": "Esta operación realizará {uploads} subidas, {updates} actualizaciones y {deletes} eliminaciones, con un coste de cuota estimado de {total_cost} unidades.",
+    "quota_details": "Esto representa el {percentage}% de su cuota diaria predeterminada.",
+    "quota_proceed": "¿Desea continuar? (s/n)",
+    "operation_aborted": "Operación cancelada."
 }

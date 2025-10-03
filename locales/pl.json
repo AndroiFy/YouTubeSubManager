@@ -2,6 +2,7 @@
     "app_description": "Zarządzaj napisami do filmów na YouTube.",
     "channel_help": "Pseudonim kanału z config.json.",
     "dry_run_help": "Symuluj działania bez wprowadzania zmian na YouTube.",
+    "no_cache_help": "Wymuś ponowne pobranie danych z YouTube, ignorując lokalną pamięć podręczną.",
     "commands_help": "Dostępne polecenia",
     "download_help": "Pobierz informacje o napisach do pliku CSV.",
     "report_help": "Wygeneruj raport CSV w formacie szerokim.",
@@ -76,5 +77,9 @@
     "permission_error": "-> Odmowa dostępu: {error}",
     "youtube_api_error": "-> Błąd API YouTube: {error}",
     "unexpected_row_error": "-> Wystąpił nieoczekiwany błąd: {error}",
-    "lang_help": "Język aplikacji (np. en, it, fr)."
+    "lang_help": "Język aplikacji (np. en, it, fr).",
+    "quota_warning": "Ta operacja wykona {uploads} przesyłek, {updates} aktualizacji i {deletes} usunięć, przy szacowanym koszcie limitu {total_cost} jednostek.",
+    "quota_details": "Stanowi to {percentage}% domyślnego dziennego limitu.",
+    "quota_proceed": "Czy chcesz kontynuować? (t/n)",
+    "operation_aborted": "Operacja przerwana."
 }

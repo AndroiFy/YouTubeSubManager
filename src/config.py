@@ -20,6 +20,13 @@ API_VERSION = "v3"
 CLIENT_SECRETS_FILE = "client_secrets.json"
 CONFIG_FILE = "config.json"
 
+# --- API Quota Costs ---
+QUOTA_COSTS = {
+    'UPLOAD': 400,
+    'UPDATE': 450,
+    'DELETE': 50
+}
+
 # --- Regional Language Mapping ---
 REGIONAL_LANGUAGE_MAP = {
     'ar': 'ar', 'bn': 'bn', 'nl': 'nl-NL', 'fr': 'fr-FR', 'de': 'de-DE',

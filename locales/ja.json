@@ -2,6 +2,7 @@
     "app_description": "YouTubeビデオの字幕を管理します。",
     "channel_help": "config.jsonからのチャンネルのニックネーム。",
     "dry_run_help": "YouTubeに変更を加えずにアクションをシミュレートします。",
+    "no_cache_help": "ローカルキャッシュを無視して、YouTubeから新しいデータを強制的に取得します。",
     "commands_help": "利用可能なコマンド",
     "download_help": "字幕情報をCSVファイルにダウンロードします。",
     "report_help": "ワイド形式のCSVレポートを生成します。",
@@ -76,5 +77,9 @@
     "permission_error": "-> 許可が拒否されました：{error}",
     "youtube_api_error": "-> YouTube APIエラー：{error}",
     "unexpected_row_error": "-> 予期しないエラーが発生しました：{error}",
-    "lang_help": "アプリケーション言語（例：en、it、fr）。"
+    "lang_help": "アプリケーション言語（例：en、it、fr）。",
+    "quota_warning": "この操作は{uploads}回のアップロード、{updates}回の更新、{deletes}回の削除を実行し、推定クォータコストは{total_cost}ユニットです。",
+    "quota_details": "これはデフォルトの1日あたりのクォータの{percentage}%に相当します。",
+    "quota_proceed": "続行しますか？ (y/n)",
+    "operation_aborted": "操作を中止しました。"
 }

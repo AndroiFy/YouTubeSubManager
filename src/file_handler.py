@@ -1,6 +1,6 @@
 import pandas as pd
 from googleapiclient.errors import HttpError
-from src.config import T, E
+from src.config import T, E, QUOTA_COSTS
 from src.youtube_api import (
     get_channel_videos,
     upload_caption,
@@ -9,12 +9,12 @@ from src.youtube_api import (
 )
 from src.translations import get_string
 
-def download_channel_captions_to_csv(youtube, channel_id, channel_nickname):
+def download_channel_captions_to_csv(youtube, channel_id, channel_nickname, no_cache=False):
     """Creates a CSV file with subtitle information for batch processing."""
     csv_path = f"captions_{channel_nickname}.csv"
     print(f"{T.INFO}{E.DOWNLOAD} {get_string('fetching_channel_info')}")
 
-    videos = get_channel_videos(youtube, channel_id)
+    videos = get_channel_videos(youtube, channel_id, no_cache=no_cache)
     all_captions_data = []
 
     for i, video in enumerate(videos):
@@ -42,12 +42,12 @@ def download_channel_captions_to_csv(youtube, channel_id, channel_nickname):
     df.to_csv(csv_path, index=False, encoding='utf-8')
     print(f"\n{T.OK}{E.SUCCESS} {get_string('csv_creation_successful', path=csv_path)}")
 
-def generate_wide_report(youtube, channel_id, channel_nickname):
+def generate_wide_report(youtube, channel_id, channel_nickname, no_cache=False):
     """Creates a human-readable CSV report of subtitle availability."""
     report_path = f"report_{channel_nickname}.csv"
     print(f"{T.INFO}{E.REPORT} {get_string('generating_report')}")
 
-    videos = get_channel_videos(youtube, channel_id)
+    videos = get_channel_videos(youtube, channel_id, no_cache=no_cache)
     all_videos_data, all_languages = [], set()
 
     for i, video in enumerate(videos):
@@ -73,6 +73,14 @@ def generate_wide_report(youtube, channel_id, channel_nickname):
     df.to_csv(report_path, index=False, encoding='utf-8')
     print(f"\n{T.OK}{E.SUCCESS} {get_string('report_creation_successful', path=report_path)}")
 
+def _estimate_quota_cost(df):
+    """Estimates the total API quota cost for the actions in the DataFrame."""
+    action_counts = df['action'].str.upper().value_counts()
+    total_cost = 0
+    for action, count in action_counts.items():
+        total_cost += QUOTA_COSTS.get(action, 0) * count
+    return total_cost, action_counts
+
 def process_csv_batch(youtube, csv_path, dry_run=False):
     """Processes subtitle operations from a CSV file."""
     try:
@@ -86,6 +94,20 @@ def process_csv_batch(youtube, csv_path, dry_run=False):
 
     if actions_df.empty:
         print(f"{T.WARN}{E.WARN} {get_string('no_actions_in_csv')}"); return
+
+    total_cost, action_counts = _estimate_quota_cost(actions_df)
+    if total_cost > 0 and not dry_run:
+        uploads = action_counts.get('UPLOAD', 0)
+        updates = action_counts.get('UPDATE', 0)
+        deletes = action_counts.get('DELETE', 0)
+
+        print(f"{T.WARN}⚠️ {get_string('quota_warning', uploads=uploads, updates=updates, deletes=deletes, total_cost=total_cost)}")
+        print(f"{T.INFO}   {get_string('quota_details', percentage=(total_cost / 10000) * 100)}")
+
+        proceed = input(f"{T.INFO}   {get_string('quota_proceed')} ").lower()
+        if proceed not in ['y', 'yes']:
+            print(f"{T.FAIL}{E.FAIL} {get_string('operation_aborted')}")
+            return
 
     for index, row in actions_df.iterrows():
         action = row.get('action', '')

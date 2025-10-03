@@ -2,6 +2,7 @@
     "app_description": "Gerencie as legendas dos vídeos do YouTube.",
     "channel_help": "Apelido do canal do config.json.",
     "dry_run_help": "Simula as ações sem fazer nenhuma alteração no YouTube.",
+    "no_cache_help": "Força uma nova busca de dados do YouTube, ignorando o cache local.",
     "commands_help": "Comandos disponíveis",
     "download_help": "Baixa as informações das legendas para um arquivo CSV.",
     "report_help": "Gera um relatório CSV em formato amplo.",
@@ -76,5 +77,9 @@
     "permission_error": "-> Permissão negada: {error}",
     "youtube_api_error": "-> Erro da API do YouTube: {error}",
     "unexpected_row_error": "-> Ocorreu um erro inesperado: {error}",
-    "lang_help": "Idioma da aplicação (ex: en, it, fr)."
+    "lang_help": "Idioma da aplicação (ex: en, it, fr).",
+    "quota_warning": "Esta operação realizará {uploads} uploads, {updates} atualizações e {deletes} exclusões, por um custo de cota estimado de {total_cost} unidades.",
+    "quota_details": "Isso representa {percentage}% de sua cota diária padrão.",
+    "quota_proceed": "Deseja continuar? (s/n)",
+    "operation_aborted": "Operação abortada."
 }

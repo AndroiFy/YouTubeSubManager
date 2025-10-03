@@ -1,4 +1,6 @@
 import os
+import json
+import json
 import pandas as pd
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
@@ -42,8 +44,20 @@ def get_authenticated_service(channel_nickname):
 
     return build(API_SERVICE_NAME, API_VERSION, credentials=creds)
 
-def get_channel_videos(youtube, channel_id):
-    """Fetches all video IDs and titles for a given channel."""
+def get_channel_videos(youtube, channel_id, no_cache=False):
+    """Fetches all video IDs and titles for a given channel, with caching."""
+    cache_dir = "cache"
+    if not os.path.exists(cache_dir):
+        os.makedirs(cache_dir)
+    cache_file = f"{cache_dir}/{channel_id}_videos.json"
+
+    if not no_cache and os.path.exists(cache_file):
+        print(f"{T.INFO}    {E.INFO} Loading video list from cache...")
+        with open(cache_file, 'r', encoding='utf-8') as f:
+            video_ids = json.load(f)
+        print(f"{T.OK}{get_string('videos_found', count=len(video_ids))}")
+        return video_ids
+
     video_ids = []
     try:
         res = youtube.channels().list(id=channel_id, part='contentDetails').execute()
@@ -61,6 +75,9 @@ def get_channel_videos(youtube, channel_id):
                 break
     except HttpError as e:
         raise HttpError(get_string('get_videos_failed', reason=e.reason), e.resp) from e
+
+    with open(cache_file, 'w', encoding='utf-8') as f:
+        json.dump(video_ids, f, ensure_ascii=False, indent=4)
 
     print(f"{T.OK}{get_string('videos_found', count=len(video_ids))}")
     return video_ids

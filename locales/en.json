@@ -2,6 +2,7 @@
     "app_description": "Manage YouTube video subtitles.",
     "channel_help": "Channel nickname from config.json.",
     "dry_run_help": "Simulate actions without making any changes to YouTube.",
+    "no_cache_help": "Force a fresh data fetch from YouTube, ignoring the local cache.",
     "commands_help": "Available commands",
     "download_help": "Download subtitle info to a CSV.",
     "report_help": "Generate a wide CSV report.",
@@ -76,5 +77,9 @@
     "permission_error": "-> Permission denied: {error}",
     "youtube_api_error": "-> YouTube API error: {error}",
     "unexpected_row_error": "-> An unexpected error occurred: {error}",
-    "lang_help": "Application language (e.g., en, it, fr)."
+    "lang_help": "Application language (e.g., en, it, fr).",
+    "quota_warning": "This operation will perform {uploads} uploads, {updates} updates, and {deletes} deletes, for an estimated quota cost of {total_cost} units.",
+    "quota_details": "This represents {percentage}% of your default daily quota.",
+    "quota_proceed": "Do you want to proceed? (y/n)",
+    "operation_aborted": "Aborting operation."
 }

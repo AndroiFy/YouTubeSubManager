@@ -2,6 +2,7 @@
     "app_description": "यूट्यूब वीडियो के उपशीर्षक प्रबंधित करें।",
     "channel_help": "config.json से चैनल का उपनाम।",
     "dry_run_help": "यूट्यूब में कोई भी बदलाव किए बिना क्रियाओं का अनुकरण करें।",
+    "no_cache_help": "स्थानीय कैश को अनदेखा करते हुए, YouTube से एक नया डेटा लाने के लिए बाध्य करें।",
     "commands_help": "उपलब्ध कमांड",
     "download_help": "उपशीर्षक जानकारी को एक CSV फ़ाइल में डाउनलोड करें।",
     "report_help": "एक विस्तृत प्रारूप में CSV रिपोर्ट तैयार करें।",
@@ -76,5 +77,9 @@
     "permission_error": "-> अनुमति अस्वीकृत: {error}",
     "youtube_api_error": "-> यूट्यूब एपीआई त्रुटि: {error}",
     "unexpected_row_error": "-> एक अप्रत्याशित त्रुटि हुई: {error}",
-    "lang_help": "एप्लिकेशन भाषा (जैसे, en, it, fr)।"
+    "lang_help": "एप्लिकेशन भाषा (जैसे, en, it, fr)।",
+    "quota_warning": "यह ऑपरेशन {uploads} अपलोड, {updates} अपडेट, और {deletes} विलोपन करेगा, जिसका अनुमानित कोटा लागत {total_cost} यूनिट है।",
+    "quota_details": "यह आपके डिफ़ॉल्ट दैनिक कोटा का {percentage}% है।",
+    "quota_proceed": "क्या आप आगे बढ़ना चाहते हैं? (y/n)",
+    "operation_aborted": "कार्रवाई रद्द कर दी गई।"
 }
