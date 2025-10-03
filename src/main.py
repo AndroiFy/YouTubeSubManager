@@ -14,13 +14,13 @@ from src.file_handler import (
 def show_help():
     """Displays the main help message."""
     print(rf"""
-{T.HEADER}╔══════════════════════════════════════════════════╗
-║                                                        ║
-║        Y O U T U B E   S U B T I T L E S               ║
-║                    M A N A G E R                       ║
-║                      v6.0                              ║
-║                                                        ║
-╚══════════════════════════════════════════════════════╝
+{T.HEADER}╔═══════════════════════════════════════════════════╗
+║                                                  ║
+║        Y O U T U B E   S U B T I T L E S         ║
+║                    M A N A G E R                 ║
+║                      v6.0                        ║
+║                                                  ║
+╚══════════════════════════════════════════════════╝
 """)
     print(" Welcome! This tool helps manage subtitles for multiple YouTube channels.")
     print("\n--- Available Commands ---\n")
