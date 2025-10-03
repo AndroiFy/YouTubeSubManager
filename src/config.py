@@ -2,6 +2,7 @@ import os
 import sys
 import json
 from colorama import init, Fore, Style
+from src.translations import get_string
 
 init(autoreset=True)
 
@@ -35,7 +36,7 @@ def normalize_language_code(lang):
     if lang_lower in REGIONAL_LANGUAGE_MAP:
         normalized = REGIONAL_LANGUAGE_MAP[lang_lower]
         if normalized != lang:
-            print(f"{T.INFO}    {E.INFO} Language code '{lang}' normalized to '{normalized}' for YouTube compatibility.")
+            print(f"{T.INFO}    {E.INFO} {get_string('lang_normalized', lang=lang, normalized=normalized)}")
         return normalized
     return lang
 
@@ -57,15 +58,15 @@ def validate_language_code(lang):
 def validate_config(config):
     """Validates the structure of the configuration dictionary."""
     if "channels" not in config or not isinstance(config["channels"], dict) or not config["channels"]:
-        raise ValueError("Config file must have a non-empty 'channels' dictionary.")
+        raise ValueError(get_string('config_no_channels'))
     for nickname, channel_id in config["channels"].items():
         if not isinstance(channel_id, str) or not channel_id.startswith("UC"):
-            raise ValueError(f"Invalid channel ID for nickname '{nickname}'. It must be a string starting with 'UC'.")
+            raise ValueError(get_string('config_invalid_id', nickname=nickname))
 
 def load_config():
     """Loads and validates the configuration file."""
     if not os.path.exists(CONFIG_FILE):
-        print(f"{T.FAIL}{E.FAIL} Configuration file '{CONFIG_FILE}' not found. Please create it.")
+        print(f"{T.FAIL}{E.FAIL} {get_string('config_not_found', config_file=CONFIG_FILE)}")
         sys.exit(1)
 
     try:
@@ -74,5 +75,5 @@ def load_config():
         validate_config(config)
         return config
     except (json.JSONDecodeError, ValueError) as e:
-        print(f"{T.FAIL}{E.FAIL} Configuration error: {e}")
+        print(f"{T.FAIL}{E.FAIL} {get_string('config_error', error=e)}")
         sys.exit(1)
