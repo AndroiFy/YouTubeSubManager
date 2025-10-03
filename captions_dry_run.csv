@@ -1,0 +1,4 @@
+video_id,video_title,caption_id,language,action,file_path
+vid1,Test Video 1,,"en",UPLOAD,"/tmp/sub1_en.srt"
+vid1,Test Video 1,cap123,"es",UPDATE,"/tmp/sub1_es.srt"
+vid2,Test Video 2,cap456,"fr",DELETE,
