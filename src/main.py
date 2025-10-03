@@ -14,7 +14,7 @@ from src.file_handler import (
 def show_help():
     """Displays the main help message."""
     print(rf"""
-{T.HEADER}╔═══════════════════════════════════════════════════╗
+{T.HEADER}╔══════════════════════════════════════════════════╗
 ║                                                  ║
 ║        Y O U T U B E   S U B T I T L E S         ║
 ║                    M A N A G E R                 ║
