@@ -3,14 +3,16 @@ import os
 import argparse
 import pandas as pd
 from googleapiclient.errors import HttpError
-from src.config import T, E, load_config, QUOTA_COSTS
+from src.config import T, E, load_config
 from src.youtube_api import get_authenticated_service, upload_caption
 from src.file_handler import (
     download_channel_captions_to_csv,
     generate_wide_report,
     process_csv_batch,
 )
+from src.project_handler import create_project, sync_project
 from src.translations import get_string, load_translations
+from src.utils import confirm_quota
 
 def show_help():
     """Displays the main help message."""
@@ -30,24 +32,8 @@ def show_help():
     print(f"{E.PROCESS} process:   {get_string('help_process')}")
     print(f"{E.ROCKET} upload:    {get_string('help_upload')}")
     print(f"{E.ROCKET} smart-upload: {get_string('help_smart_upload')}")
-
-def confirm_quota(uploads=0, updates=0, deletes=0):
-    """Calculates estimated quota cost and asks for user confirmation."""
-    total_cost = (uploads * QUOTA_COSTS.get('UPLOAD', 0) +
-                  updates * QUOTA_COSTS.get('UPDATE', 0) +
-                  deletes * QUOTA_COSTS.get('DELETE', 0))
-
-    if total_cost == 0:
-        return True
-
-    print(f"{T.WARN}⚠️ {get_string('quota_warning', uploads=uploads, updates=updates, deletes=deletes, total_cost=total_cost)}")
-    print(f"{T.INFO}   {get_string('quota_details', percentage=(total_cost / 10000) * 100)}")
-
-    proceed = input(f"{T.INFO}   {get_string('quota_proceed')} ").lower()
-    if proceed not in ['y', 'yes']:
-        print(f"{T.FAIL}{E.FAIL} {get_string('operation_aborted')}")
-        return False
-    return True
+    print(f"{E.ROCKET} project:   {get_string('project_help')}")
+    print(f"{E.ROCKET} sync:      {get_string('sync_help')}")
 
 def main():
     """Main function to run the script."""
@@ -90,6 +76,13 @@ def main():
     smart_upload_parser = subparsers.add_parser("smart-upload", help=get_string('smart_upload_help'), parents=[dry_run_parser])
     smart_upload_parser.add_argument("file_paths", nargs='+')
 
+    project_parser = subparsers.add_parser("project", help=get_string('project_help'))
+    project_parser.add_argument("--video-id", required=True, help=get_string('video_id_help'))
+
+    sync_parser = subparsers.add_parser("sync", help=get_string('sync_help'), parents=[dry_run_parser])
+    sync_parser.add_argument("--project-path", required=True, help=get_string('project_path_help'))
+    sync_parser.add_argument("--allow-deletes", action="store_true", help=get_string('allow_deletes_help'))
+
     args = parser.parse_args()
 
     is_dry_run = getattr(args, 'dry_run', False)
@@ -103,7 +96,7 @@ def main():
         channel_id = config['channels'][channel_nickname]
         print(f"\n{T.HEADER}{get_string('working_on_channel', channel_nickname=channel_nickname)}")
 
-        modifying_commands = ["process", "upload", "smart-upload"]
+        modifying_commands = ["process", "upload", "smart-upload", "sync"]
         youtube = None
         if not (args.command in modifying_commands and is_dry_run):
             youtube = get_authenticated_service(channel_nickname)
@@ -115,11 +108,11 @@ def main():
         elif args.command == "process":
             process_csv_batch(youtube, args.csv_path, dry_run=is_dry_run)
         elif args.command == "upload":
-            if not is_dry_run and not confirm_quota(uploads=1):
+            if not is_dry_run and not confirm_quota(uploads=1, updates=0, deletes=0):
                 sys.exit(0)
             upload_caption(youtube, args.video_id, args.language, args.file_path, dry_run=is_dry_run)
         elif args.command == "smart-upload":
-            if not is_dry_run and not confirm_quota(uploads=len(args.file_paths)):
+            if not is_dry_run and not confirm_quota(uploads=len(args.file_paths), updates=0, deletes=0):
                 sys.exit(0)
 
             print(f"{T.HEADER}--- {E.ROCKET} {get_string('smart_upload_start')} ---")
@@ -157,6 +150,10 @@ def main():
                 print(f"{T.INFO}   ({i+1}/{len(files_to_upload)}) ", end="")
                 upload_caption(youtube, file_info['id'], file_info['lang'], file_info['path'], dry_run=is_dry_run)
             print(f"\n{T.OK}--- {E.SUCCESS} {get_string('smart_upload_complete')} ---")
+        elif args.command == "project":
+            create_project(youtube, args.video_id)
+        elif args.command == "sync":
+            sync_project(youtube, args.project_path, args.allow_deletes, is_dry_run)
 
     except (ValueError, FileNotFoundError, PermissionError) as e:
         print(f"\n{T.FAIL}{E.FAIL} {get_string('input_error', error=e)}")

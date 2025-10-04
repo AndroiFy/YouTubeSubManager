@@ -8,6 +8,7 @@ from src.youtube_api import (
     delete_caption
 )
 from src.translations import get_string
+from src.utils import confirm_quota
 
 def download_channel_captions_to_csv(youtube, channel_id, channel_nickname, no_cache=False):
     """Creates a CSV file with subtitle information for batch processing."""
@@ -96,18 +97,12 @@ def process_csv_batch(youtube, csv_path, dry_run=False):
         print(f"{T.WARN}{E.WARN} {get_string('no_actions_in_csv')}"); return
 
     total_cost, action_counts = _estimate_quota_cost(actions_df)
-    if total_cost > 0 and not dry_run:
-        uploads = action_counts.get('UPLOAD', 0)
-        updates = action_counts.get('UPDATE', 0)
-        deletes = action_counts.get('DELETE', 0)
-
-        print(f"{T.WARN}⚠️ {get_string('quota_warning', uploads=uploads, updates=updates, deletes=deletes, total_cost=total_cost)}")
-        print(f"{T.INFO}   {get_string('quota_details', percentage=(total_cost / 10000) * 100)}")
-
-        proceed = input(f"{T.INFO}   {get_string('quota_proceed')} ").lower()
-        if proceed not in ['y', 'yes']:
-            print(f"{T.FAIL}{E.FAIL} {get_string('operation_aborted')}")
-            return
+    if not dry_run and not confirm_quota(
+        uploads=action_counts.get('UPLOAD', 0),
+        updates=action_counts.get('UPDATE', 0),
+        deletes=action_counts.get('DELETE', 0)
+    ):
+        return
 
     for index, row in actions_df.iterrows():
         action = row.get('action', '')
