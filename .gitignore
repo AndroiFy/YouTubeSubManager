@@ -1,0 +1,6 @@
+__pycache__/
+*.pyc
+cache/
+client_secrets.json
+token_*.json
+projects/
