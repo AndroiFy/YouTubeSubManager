@@ -2,6 +2,7 @@ import os
 import json
 import hashlib
 from datetime import datetime, timedelta
+from src.config import T, E
 
 CACHE_DIR = "cache"
 CACHE_DURATION = timedelta(hours=1)
@@ -23,7 +24,7 @@ def generate_cache_key(function_name, **kwargs):
 
     return hasher.hexdigest()
 
-def get_from_cache(key):
+def get_from_cache(key, translator):
     """
     Retrieves data from the cache if it exists and is not expired.
     Returns None if the cache is invalid or missing.
@@ -46,7 +47,7 @@ def get_from_cache(key):
         # Invalid cache file, treat as a cache miss
         return None
 
-def save_to_cache(key, data):
+def save_to_cache(key, data, translator):
     """Saves data to the cache with a timestamp."""
     os.makedirs(CACHE_DIR, exist_ok=True)
     cache_path = _get_cache_path(key)
@@ -60,4 +61,4 @@ def save_to_cache(key, data):
         with open(cache_path, 'w', encoding='utf-8') as f:
             json.dump(cache_data, f, indent=4)
     except IOError as e:
-        print(f"Warning: Could not write to cache file {cache_path}: {e}")
+        print(translator.get('cache.write_error', T_WARN=T.WARN, E_WARN=E.WARN, cache_path=cache_path, e=e))

@@ -1,0 +1,134 @@
+{
+  "main": {
+    "welcome": "Welcome! This tool helps manage subtitles for multiple YouTube channels.",
+    "commands_header": "\n--- Available Commands ---\n",
+    "working_on_channel": "\n--- {E_CHANNEL} Working on channel: '{channel_nickname}' ---",
+    "fatal_error": "\nFATAL ERROR: An operation failed. Reason: {e}"
+  },
+  "help": {
+    "project": "Creates a new project directory for managing subtitles.",
+    "sync": "Synchronizes the project with YouTube, handling uploads, updates, and deletes.",
+    "download": "(For Processing) Creates a 'long' format CSV file with all subtitle data.",
+    "report": "(For Viewing) Creates a 'wide', human-readable CSV with one row per video.",
+    "process": "Batch processes the 'long' CSV file created by the 'download' command.",
+    "upload": "Uploads a single subtitle file to a video.",
+    "smart_upload": "Uploads one or more files by parsing their names."
+  },
+  "args": {
+    "description": "Manage YouTube video subtitles for multiple channels.",
+    "channel": "The nickname of the channel to work on (defined in config.json).",
+    "command": "Available commands",
+    "project_help": "Create a new project directory.",
+    "project_name": "The name of the project.",
+    "sync_help": "Synchronize a project with YouTube.",
+    "sync_name": "The name of the project to sync.",
+    "download_help": "Download all subtitle info to a 'long' CSV file for processing.",
+    "report_help": "Generate a 'wide', human-readable CSV report for viewing.",
+    "process_help": "Process actions from a 'long' CSV file.",
+    "csv_path": "Path of the 'long' format CSV file to process.",
+    "upload_help": "Upload a single subtitle file.",
+    "smart_upload_help": "Upload one or more files by parsing their names."
+  },
+  "smart_upload": {
+    "header": "--- {E_ROCKET} Starting Smart Upload ---",
+    "validating": "1. Validating all file names...",
+    "file_not_found": "The file '{file_path}' was not found.",
+    "permission_denied": "Cannot read file: {file_path}",
+    "invalid_format": "Invalid filename format for '{basename}'. Must be 'VIDEOID_LANGUAGE.ext'.",
+    "video_id_set": "   {E_VIDEO} Target Video ID set to: {target_video_id}",
+    "mismatched_id": "Mismatched Video ID. Expected '{target_video_id}' but file '{basename}' has '{video_id}'.",
+    "validation_success": "   {E_SUCCESS} Validation successful. All files are for the same video.",
+    "starting_uploads": "\n2. Starting uploads for {len_files_to_upload} files...",
+    "complete": "\n--- {E_SUCCESS} Smart Upload Complete ---"
+  },
+  "file_handler": {
+    "download_start": "Starting to fetch channel information for processing file...",
+    "processing_video": "Processing video {i}/{len_videos}: {video_title}",
+    "http_error_video": "An HTTP error {code} occurred for this video: {reason}",
+    "download_success": "\nSuccessfully created processing file at: {csv_path}",
+    "report_start": "Starting to generate wide format report. This may take a while...",
+    "report_no_videos": "No videos found to generate a report.",
+    "report_success": "\nSuccessfully created wide format report at: {report_path}",
+    "process_start": "Processing CSV file: {csv_path}",
+    "process_no_actions": "No actions found in the CSV file.",
+    "process_row_header": "\n--- Processing Row {index}: Action='{action}', VideoID='{video_id}' ---",
+    "skipping_action": "  -> SKIPPING: Unknown action '{action}'",
+    "file_not_found": "  -> File not found: {e}",
+    "permission_denied": "  -> Permission denied: {e}",
+    "youtube_api_error": "  -> YouTube API error {code}: {reason}",
+    "unexpected_error": "  -> Unexpected error: {e}"
+  },
+  "project": {
+    "already_exists": "Project '{project_name}' already exists at: {project_path}",
+    "created_directory": "Created project directory: {project_path}",
+    "fetching_data": "Fetching all video and subtitle data for the channel...",
+    "http_error_video": "An HTTP error {code} occurred for video {video_id}: {reason}",
+    "create_success": "\nProject '{project_name}' created successfully.",
+    "data_saved": "Subtitle data saved to: {subtitles_json_path}",
+    "not_found": "Project '{project_name}' not found. Please create it first."
+  },
+  "sync": {
+    "header": "--- {E_PROCESS} Starting Sync for Project: {project_name} ---",
+    "scanning": "1. Scanning for local subtitle files and changes...",
+    "invalid_format": "Skipping file with invalid format: {file}",
+    "analyzing": "\n2. Executing synchronization actions...",
+    "uploading": "  {E_ROCKET} Uploading new subtitle for video {video_id} ({lang})...",
+    "updating": "  {E_PROCESS} Updating subtitle for video {video_id} ({lang})...",
+    "deleting": "  {E_TRASH} Deleting subtitle for video {video_id} ({lang})...",
+    "failed_action": "  -> FAILED to {action} for video {video_id} ({lang}): {e}",
+    "saving": "\n3. Saving updated project file...",
+    "complete": "\n--- {E_SUCCESS} Sync Complete for Project: {project_name} ---"
+  },
+  "youtube_api": {
+    "token_expired": "Access token for '{channel_nickname}' expired. Refreshing automatically...",
+    "token_refresh_failed": "Could not refresh token: {e}. Please re-authenticate.",
+    "no_valid_token": "No valid token for '{channel_nickname}'. Please authenticate via the browser.",
+    "auth_success": "Authentication successful. Token saved to '{token_file}'.",
+    "cache_hit_videos": "Found channel videos in cache. Skipping API call.",
+    "fetching_videos": "Fetching channel videos from YouTube API...",
+    "found_videos": "Found {len_videos} videos in the channel.",
+    "http_error": "An HTTP error occurred: {e}",
+    "invalid_lang_code": "Warning: '{normalized_lang}' may not be a valid YouTube language code.",
+    "uploading_caption": "  {E_ROCKET} Uploading '{normalized_lang}' caption from '{file_path}'...",
+    "upload_success": "Upload successful! Caption ID: {caption_id}.",
+    "updating_caption": "  {E_PROCESS} Updating '{normalized_lang}' caption for video {video_id}...",
+    "update_direct": "    {E_INFO} Attempting direct update with provided caption ID '{caption_id}'.",
+    "update_success": "Update successful!",
+    "caption_id_not_found": "Provided caption ID '{caption_id}' not found. Will fall back to searching by language.",
+    "searching_by_lang": "    {E_INFO} Searching for existing caption in '{normalized_lang}'...",
+    "list_captions_failed": "Could not check for existing captions: {reason}. Will try to upload as a new caption.",
+    "found_existing_caption": "    {E_INFO} Found existing caption with ID '{caption_id}'. Updating it.",
+    "update_api_error": "  -> YouTube API error during update for caption ID {caption_id}: {reason}",
+    "trying_new_upload": "           Trying to upload as new caption instead.",
+    "no_existing_caption": "    {E_INFO} No existing '{normalized_lang}' caption found. Proceeding with a new upload.",
+    "deleting_caption": "  {E_TRASH} Deleting caption with ID: {caption_id}...",
+    "delete_success": "Deleted caption."
+  },
+  "config": {
+    "lang_normalized": "Language code '{lang}' normalized to '{normalized}' for YouTube compatibility.",
+    "must_be_dict": "Configuration must be a dictionary.",
+    "must_have_channels": "Configuration file must have a 'channels' key.",
+    "channels_must_be_dict": "'channels' must be a dictionary.",
+    "channels_not_empty": "'channels' dictionary cannot be empty.",
+    "invalid_channel_id": "Invalid channel ID for nickname '{nickname}'. It must be a string starting with 'UC'.",
+    "file_not_found": "Configuration file '{config_file}' not found. Please create it.",
+    "invalid_json": "Invalid JSON in config file: {e}",
+    "config_error": "Configuration error: {e}"
+  },
+  "quota": {
+    "increment": "   {E_KEY} Quota +{cost} for '{api_call_name}'. Total session usage: {total_usage}",
+    "report_header": "\n--- {E_REPORT} API Quota Usage Report ---",
+    "report_total": "  Total estimated quota units used in this session: {total_usage}",
+    "report_limit_info": "  YouTube Data API daily quota is typically 10,000 units.",
+    "report_warning": "  Warning: You are approaching or have exceeded the daily quota.",
+    "report_footer": "------------------------------------"
+  },
+  "cache": {
+    "write_error": "Warning: Could not write to cache file {cache_path}: {e}"
+  },
+  "localization": {
+    "file_not_found": "Language file not found for '{language}'. Falling back to 'en'.",
+    "load_failed": "Failed to load language file {locale_path}: {e}",
+    "format_error": "Translation formatting error for key '{key}': {e}"
+  }
+}

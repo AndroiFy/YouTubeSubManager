@@ -12,23 +12,23 @@ QUOTA_COSTS = {
     'captions.delete': 50,
 }
 
-def increment_quota(api_call_name):
+def increment_quota(api_call_name, translator):
     """Increments the global quota usage counter and prints the cost."""
     global _QUOTA_USAGE
     cost = QUOTA_COSTS.get(api_call_name, 0)
     if cost > 0:
         _QUOTA_USAGE += cost
-        print(f"{T.INFO}   {E.KEY} Quota +{cost} for '{api_call_name}'. Total session usage: {_QUOTA_USAGE}")
+        print(translator.get('quota.increment', T_INFO=T.INFO, E_KEY=E.KEY, cost=cost, api_call_name=api_call_name, total_usage=_QUOTA_USAGE))
 
 def get_total_quota_usage():
     """Returns the total estimated quota usage for the session."""
     return _QUOTA_USAGE
 
-def display_quota_usage():
+def display_quota_usage(translator):
     """Prints the final estimated quota usage for the session."""
-    print(f"\n{T.HEADER}--- {E.REPORT} API Quota Usage Report ---")
-    print(f"  Total estimated quota units used in this session: {_QUOTA_USAGE}")
-    print(f"  YouTube Data API daily quota is typically 10,000 units.")
+    print(translator.get('quota.report_header', T_HEADER=T.HEADER, E_REPORT=E.REPORT))
+    print(translator.get('quota.report_total', total_usage=_QUOTA_USAGE))
+    print(translator.get('quota.report_limit_info'))
     if _QUOTA_USAGE > 9000:
-        print(f"{T.WARN}{E.WARN}  Warning: You are approaching or have exceeded the daily quota.")
-    print(f"{T.HEADER}------------------------------------")
+        print(translator.get('quota.report_warning', T_WARN=T.WARN, E_WARN=E.WARN))
+    print(translator.get('quota.report_footer', T_HEADER=T.HEADER))

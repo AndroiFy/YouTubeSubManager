@@ -42,8 +42,9 @@ This tool simplifies subtitle management by moving away from complex spreadsheet
 **The workflow is easy:**
 
 1.  **Create a Project**: You run the `project` command once for a channel. This creates a new folder (e.g., `projects/my-channel/`) and downloads a `subtitles.json` file, which acts as a master list of all your videos and their subtitles.
-2.  **Add & Edit Subtitles**: You add your subtitle files (e.g., `.srt` files) to the project folder. To update a subtitle, you just edit the file. To delete one, you delete the file. The filename format is simple: `VIDEOID_LANGUAGE.srt`.
-3.  **Sync Your Changes**: You run the `sync` command. The tool automatically compares the files in your project folder to the `subtitles.json` manifest and the live data on YouTube. It then intelligently performs all the necessary uploads, updates, and deletions to get everything in sync.
+2.  **Organize Your Subtitles (Recommended)**: For better organization, create a sub-folder for each video inside your project directory, named after the **Video ID**. Place all subtitle files for that video inside its folder.
+3.  **Add & Edit Subtitles**: Add your subtitle files (e.g., `.srt` files) to the project. To update a subtitle, you just edit the file. To delete one, you delete the file.
+4.  **Sync Your Changes**: You run the `sync` command. The tool automatically scans your project folder (including all sub-folders), compares the files to the `subtitles.json` manifest, and intelligently performs all the necessary uploads, updates, and deletions.
 
 ---
 
@@ -126,7 +127,7 @@ You are now ready to use the tool!
 
 ## 📖 Usage
 
-The tool is run from your terminal.
+The tool is run from your terminal. All commands support the optional `--language` or `-l` flag to change the interface language (e.g., `--language es`).
 
 ### Command 1: `project` (Create a New Project)
 
@@ -163,9 +164,28 @@ python yousub.py --channel my-main-channel sync main-channel-subs
 
 **How to Use the `sync` Workflow:**
 
-1.  **To Add a New Subtitle**: Create a new `.srt` file inside your project folder (e.g., `projects/main-channel-subs/`). Name it `VIDEOID_LANGUAGE.srt`. Run the `sync` command.
-2.  **To Update an Existing Subtitle**: Simply edit and save the existing `.srt` file in your project folder. Run the `sync` command.
-3.  **To Delete a Subtitle**: Delete the `.srt` file from your project folder. Run the `sync` command.
+The tool supports two organization strategies for your subtitle files inside the project folder:
+
+**1. Recommended: Folder-Based Structure**
+
+Create a sub-folder for each video, named with the **Video ID**. Inside each folder, name your subtitle files with just the **language code**.
+
+-   `projects/my-project/VIDEOID1/en.srt`
+-   `projects/my-project/VIDEOID1/es.srt`
+-   `projects/my-project/VIDEOID2/en.srt`
+
+**2. Legacy: Flat Structure**
+
+Place all files directly in the project folder, named with `VIDEOID_LANGUAGE.srt`.
+
+-   `projects/my-project/VIDEOID1_en.srt`
+-   `projects/my-project/VIDEOID1_es.srt`
+
+**Syncing Changes:**
+
+-   **To Add a New Subtitle**: Create a new `.srt` file in the appropriate location. Run the `sync` command.
+-   **To Update an Existing Subtitle**: Simply edit and save the existing `.srt` file. Run the `sync` command.
+-   **To Delete a Subtitle**: Delete the `.srt` file from your project folder. Run the `sync` command.
 
 ---
 
@@ -220,17 +240,15 @@ The YouTube API has a daily limit of **10,000 units**. This tool has two feature
 ```
 youtube-subtitles-manager/
 ├── src/
-│   ├── main.py
-│   ├── youtube_api.py
-│   ├── file_handler.py
-│   ├── config.py
-│   ├── cache.py
-│   └── quota.py
+│   └── ... (source code)
 ├── projects/
 │   └── <your_project_name>/
 │       ├── subtitles.json
-│       ├── VIDEOID1_en.srt
-│       └── VIDEOID2_fr.srt
+│       ├── <VIDEOID1>/
+│       │   ├── en.srt
+│       │   └── es.srt
+│       └── <VIDEOID2>/
+│           └── fr.srt
 ├── cache/
 │   └── ... (cache files)
 ├── tests/
@@ -242,6 +260,29 @@ youtube-subtitles-manager/
 ├── README.md
 └── .gitignore
 ```
+
+---
+
+## 🌐 Localization
+
+This tool supports multiple languages for the user interface.
+
+### Using a Different Language
+
+To change the language, use the `--language` (or `-l`) flag with any command. The default language is English (`en`).
+
+```bash
+# Example: Run the sync command with the Spanish interface
+python yousub.py --channel my-main-channel -l es sync main-channel-subs
+```
+
+### How to Contribute a New Translation
+
+We welcome contributions for new languages! It's easy to add one:
+
+1.  **Copy the English file**: In the `locales/` directory, make a copy of `en.json` and rename it to your language's two-letter ISO 639-1 code (e.g., `es.json` for Spanish, `de.json` for German).
+2.  **Translate the strings**: Open your new JSON file and translate the English text on the right-hand side of each key. Do not change the keys on the left-hand side or any of the `{variable_names}` in curly braces.
+3.  **Submit a Pull Request**: Once you're done, please submit a pull request on GitHub to share your translation with the community!
 
 ---
 

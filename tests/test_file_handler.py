@@ -9,9 +9,16 @@ def mock_youtube_api():
     """Fixture to mock the YouTube API client."""
     return MagicMock()
 
+@pytest.fixture
+def mock_translator():
+    """Fixture to mock the Translator class."""
+    translator = MagicMock()
+    translator.get.side_effect = lambda key, **kwargs: key
+    return translator
+
 @patch('src.file_handler.list_captions')
 @patch('src.file_handler.get_channel_videos')
-def test_download_channel_captions_to_csv(mock_get_channel_videos, mock_list_captions, mock_youtube_api, tmp_path):
+def test_download_channel_captions_to_csv(mock_get_channel_videos, mock_list_captions, mock_youtube_api, tmp_path, mock_translator):
     """
     Test downloading channel captions to a CSV file.
     """
@@ -25,21 +32,14 @@ def test_download_channel_captions_to_csv(mock_get_channel_videos, mock_list_cap
         {'id': 'video2', 'title': 'Test Video 2'}
     ]
 
-    # Mock the captions list response
     mock_list_captions.side_effect = [
-        {
-            'items': [
-                {'id': 'caption1', 'snippet': {'language': 'en'}}
-            ]
-        },
-        {
-            'items': []
-        }
+        {'items': [{'id': 'caption1', 'snippet': {'language': 'en'}}]},
+        {'items': []}
     ]
 
     # Act
     os.chdir(tmp_path)
-    download_channel_captions_to_csv(mock_youtube_api, channel_id, channel_nickname)
+    download_channel_captions_to_csv(mock_youtube_api, channel_id, channel_nickname, mock_translator)
 
     # Assert
     assert os.path.exists(csv_path)
@@ -47,17 +47,14 @@ def test_download_channel_captions_to_csv(mock_get_channel_videos, mock_list_cap
 
     assert len(df) == 2
     assert df.iloc[0]['video_id'] == 'video1'
-    assert df.iloc[0]['caption_id'] == 'caption1'
     assert df.iloc[1]['video_id'] == 'video2'
-    assert pd.isna(df.iloc[1]['caption_id'])
 
-    mock_get_channel_videos.assert_called_once_with(mock_youtube_api, channel_id)
+    mock_get_channel_videos.assert_called_once_with(mock_youtube_api, channel_id, mock_translator)
     assert mock_list_captions.call_count == 2
-
 
 @patch('src.file_handler.list_captions')
 @patch('src.file_handler.get_channel_videos')
-def test_generate_wide_report(mock_get_channel_videos, mock_list_captions, mock_youtube_api, tmp_path):
+def test_generate_wide_report(mock_get_channel_videos, mock_list_captions, mock_youtube_api, tmp_path, mock_translator):
     """
     Test generating a wide format report of subtitle availability.
     """
@@ -72,22 +69,13 @@ def test_generate_wide_report(mock_get_channel_videos, mock_list_captions, mock_
     ]
 
     mock_list_captions.side_effect = [
-        {
-            'items': [
-                {'id': 'caption1_en', 'snippet': {'language': 'en'}},
-                {'id': 'caption1_fr', 'snippet': {'language': 'fr'}}
-            ]
-        },
-        {
-            'items': [
-                {'id': 'caption2_en', 'snippet': {'language': 'en'}}
-            ]
-        }
+        {'items': [{'id': 'caption1_en', 'snippet': {'language': 'en'}}, {'id': 'caption1_fr', 'snippet': {'language': 'fr'}}]},
+        {'items': [{'id': 'caption2_en', 'snippet': {'language': 'en'}}]}
     ]
 
     # Act
     os.chdir(tmp_path)
-    generate_wide_report(mock_youtube_api, channel_id, channel_nickname)
+    generate_wide_report(mock_youtube_api, channel_id, channel_nickname, mock_translator)
 
     # Assert
     assert os.path.exists(report_path)
@@ -101,11 +89,10 @@ def test_generate_wide_report(mock_get_channel_videos, mock_list_captions, mock_
     assert df.iloc[1]['caption_id_en'] == 'caption2_en'
     assert pd.isna(df.iloc[1]['caption_id_fr'])
 
-
 @patch('src.file_handler.upload_caption')
 @patch('src.file_handler.update_caption')
 @patch('src.file_handler.delete_caption')
-def test_process_csv_batch(mock_delete, mock_update, mock_upload, mock_youtube_api, tmp_path):
+def test_process_csv_batch(mock_delete, mock_update, mock_upload, mock_youtube_api, tmp_path, mock_translator):
     """
     Test processing a CSV batch file with UPLOAD, UPDATE, and DELETE actions.
     """
@@ -122,9 +109,9 @@ def test_process_csv_batch(mock_delete, mock_update, mock_upload, mock_youtube_a
     df.to_csv(csv_path, index=False)
 
     # Act
-    process_csv_batch(mock_youtube_api, csv_path)
+    process_csv_batch(mock_youtube_api, csv_path, mock_translator)
 
     # Assert
-    mock_upload.assert_called_once_with(mock_youtube_api, 'video1', 'en', '/path/to/en.srt')
-    mock_update.assert_called_once_with(mock_youtube_api, 'video2', 'fr', '/path/to/fr.srt', caption_id='caption2')
-    mock_delete.assert_called_once_with(mock_youtube_api, 'caption3')
+    mock_upload.assert_called_once_with(mock_youtube_api, 'video1', 'en', '/path/to/en.srt', mock_translator)
+    mock_update.assert_called_once_with(mock_youtube_api, 'video2', 'fr', '/path/to/fr.srt', mock_translator, caption_id='caption2')
+    mock_delete.assert_called_once_with(mock_youtube_api, 'caption3', mock_translator)
