@@ -26,7 +26,7 @@ REGIONAL_LANGUAGE_MAP = {
     'zh-tw': 'zh-TW', 'zh-hk': 'zh-HK',
 }
 
-def normalize_language_code(lang):
+def normalize_language_code(lang, translator):
     """
     Normalizes language codes to match YouTube's regional requirements.
     Returns the appropriate regional variant if available.
@@ -36,40 +36,40 @@ def normalize_language_code(lang):
     if lang_lower in REGIONAL_LANGUAGE_MAP:
         normalized = REGIONAL_LANGUAGE_MAP[lang_lower]
         if normalized != lang:
-            print(f"{T.INFO}    {E.INFO} Language code '{lang}' normalized to '{normalized}' for YouTube compatibility.")
+            print(translator.get('config.lang_normalized', T_INFO=T.INFO, E_INFO=E.INFO, lang=lang, normalized=normalized))
         return normalized
 
     return lang
 
-def validate_config(config):
+def validate_config(config, translator):
     """Validates the structure of the configuration dictionary."""
     if not isinstance(config, dict):
-        raise ValueError("Configuration must be a dictionary.")
+        raise ValueError(translator.get('config.must_be_dict'))
     if "channels" not in config:
-        raise ValueError("Configuration file must have a 'channels' key.")
+        raise ValueError(translator.get('config.must_have_channels'))
     if not isinstance(config["channels"], dict):
-        raise ValueError("'channels' must be a dictionary.")
+        raise ValueError(translator.get('config.channels_must_be_dict'))
     if not config["channels"]:
-        raise ValueError("'channels' dictionary cannot be empty.")
+        raise ValueError(translator.get('config.channels_not_empty'))
     for nickname, channel_id in config["channels"].items():
         if not isinstance(channel_id, str) or not channel_id.startswith("UC"):
-            raise ValueError(f"Invalid channel ID for nickname '{nickname}'. It must be a string starting with 'UC'.")
+            raise ValueError(translator.get('config.invalid_channel_id', nickname=nickname))
 
-def load_config():
+def load_config(translator):
     if not os.path.exists(CONFIG_FILE):
-        print(f"{T.FAIL}{E.FAIL} Configuration file '{CONFIG_FILE}' not found. Please create it.")
+        print(translator.get('config.file_not_found', T_FAIL=T.FAIL, E_FAIL=E.FAIL, config_file=CONFIG_FILE))
         sys.exit(1)
 
     try:
         with open(CONFIG_FILE, 'r') as f:
             config = json.load(f)
-        validate_config(config)
+        validate_config(config, translator)
         return config
     except json.JSONDecodeError as e:
-        print(f"{T.FAIL}{E.FAIL} Invalid JSON in config file: {e}")
+        print(translator.get('config.invalid_json', T_FAIL=T.FAIL, E_FAIL=E.FAIL, e=e))
         sys.exit(1)
     except ValueError as e:
-        print(f"{T.FAIL}{E.FAIL} Configuration error: {e}")
+        print(translator.get('config.config_error', T_FAIL=T.FAIL, E_FAIL=E.FAIL, e=e))
         sys.exit(1)
 
 def validate_language_code(lang):

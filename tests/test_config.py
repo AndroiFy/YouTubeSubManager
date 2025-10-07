@@ -1,7 +1,15 @@
 import os
 import json
 import pytest
+from unittest.mock import MagicMock
 from src.config import load_config
+
+@pytest.fixture
+def mock_translator():
+    """Fixture to mock the Translator class."""
+    translator = MagicMock()
+    translator.get.side_effect = lambda key, **kwargs: key
+    return translator
 
 @pytest.fixture(scope="function")
 def temp_config_file(tmp_path):
@@ -19,28 +27,28 @@ def temp_config_file(tmp_path):
     yield
     os.chdir(original_cwd)
 
-def test_load_config_success(temp_config_file):
+def test_load_config_success(temp_config_file, mock_translator):
     """
     Test that load_config returns the correct configuration data when the file is valid.
     """
-    config = load_config()
+    config = load_config(mock_translator)
     assert "channels" in config
     assert "test_channel" in config["channels"]
     assert config["channels"]["test_channel"] == "UC1234567890"
 
-def test_load_config_not_found(tmp_path):
+def test_load_config_not_found(tmp_path, mock_translator):
     """
     Test that load_config exits when the config file is not found.
     """
     original_cwd = os.getcwd()
     os.chdir(tmp_path)
     with pytest.raises(SystemExit) as e:
-        load_config()
+        load_config(mock_translator)
     assert e.type == SystemExit
     assert e.value.code == 1
     os.chdir(original_cwd)
 
-def test_load_config_invalid_json(tmp_path):
+def test_load_config_invalid_json(tmp_path, mock_translator):
     """
     Test that load_config exits with invalid JSON.
     """
@@ -51,12 +59,12 @@ def test_load_config_invalid_json(tmp_path):
     original_cwd = os.getcwd()
     os.chdir(tmp_path)
     with pytest.raises(SystemExit) as e:
-        load_config()
+        load_config(mock_translator)
     assert e.type == SystemExit
     assert e.value.code == 1
     os.chdir(original_cwd)
 
-def test_validate_config_no_channels_key(tmp_path):
+def test_validate_config_no_channels_key(tmp_path, mock_translator):
     """
     Test that load_config exits if 'channels' key is missing.
     """
@@ -68,7 +76,7 @@ def test_validate_config_no_channels_key(tmp_path):
     original_cwd = os.getcwd()
     os.chdir(tmp_path)
     with pytest.raises(SystemExit) as e:
-        load_config()
+        load_config(mock_translator)
     assert e.type == SystemExit
     assert e.value.code == 1
     os.chdir(original_cwd)
